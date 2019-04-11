@@ -7,9 +7,9 @@ from async_property.proxy import AwaitableOnly
 is_coroutine = asyncio.iscoroutinefunction
 
 
-def async_property(func):
+def async_property(func, *args, **kwargs):
     assert is_coroutine(func), 'Can only use with async def'
-    return AsyncPropertyDescriptor(func)
+    return AsyncPropertyDescriptor(func, *args, **kwargs)
 
 
 class AsyncPropertyDescriptor:

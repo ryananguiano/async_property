@@ -1,7 +1,8 @@
 import pytest
 
 from async_property import async_property, AsyncPropertyException
-
+from async_property.base import AsyncPropertyDescriptor
+from async_property.proxy import AwaitableOnly
 
 pytestmark = pytest.mark.asyncio
 
@@ -12,8 +13,13 @@ class MyModel:
         return 'bar'
 
 
+async def test_descriptor():
+    assert isinstance(MyModel.foo, AsyncPropertyDescriptor)
+
+
 async def test_property():
     instance = MyModel()
+    assert isinstance(instance.foo, AwaitableOnly)
     assert await instance.foo == 'bar'
 
 

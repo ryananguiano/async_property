@@ -43,7 +43,7 @@ Or if you have pipenv:
 Usage
 -----
 
-You can use ``@async_property`` just as you would with ``@property``, but on a async function.
+You can use ``@async_property`` just as you would with ``@property``, but on an async function.
 
 .. code-block:: python
 
@@ -59,6 +59,51 @@ The property ``remote_value`` now returns an awaitable coroutine.
     instance = Foo()
     await instance.remote_value
 
+
+Cached Properties
+~~~~~~~~~~~~~~~~~
+
+``@async_cached_property`` will only call the function once. Subsequent awaits to the property will return a cached value.
+
+.. code-block:: python
+
+    class Foo:
+        @async_cached_property
+        async def value(self):
+            print('loading value')
+            return 123
+
+    >>> instance = Foo()
+    >>> await instance.value
+    loading value
+    123
+    >>> await instance.value
+    123
+
+
+AwaitLoader
+~~~~~~~~~~~
+
+If you have multiple cached properties and would like to load them concurrently, you can subclass ``AwaitLoader``. This makes your class instance awaitable and will load all ``@async_cached_property`` fields.
+
+.. code-block:: python
+
+
+    class Foo(AwaitLoader):
+        @async_cached_property
+        async def db_lookup(self):
+            return 'success'
+
+        @async_cached_property
+        async def api_call(self):
+            return 'works every time'
+
+
+    >>> instance = await Foo()
+    >>> instance.db_lookup
+    'success'
+    >>> instance.api_call
+    'works every time'
 
 Features
 --------

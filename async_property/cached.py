@@ -7,12 +7,14 @@ from async_property.proxy import AwaitableOnly, AwaitableProxy
 is_coroutine = asyncio.iscoroutinefunction
 
 
-def async_cached_property(func):
+def async_cached_property(func, *args, **kwargs):
     assert is_coroutine(func), 'Can only use with async def'
-    return AsyncCachedPropertyDescriptor(func)
+    return AsyncCachedPropertyDescriptor(func, *args, **kwargs)
 
 
 class AsyncCachedPropertyDescriptor:
+    lock = asyncio.Lock()
+
     def __init__(self, _fget, _fset=None, _fdel=None, field_name=None, doc=None):
         self._fget = _fget
         self._fset = _fset
@@ -66,11 +68,12 @@ class AsyncCachedPropertyDescriptor:
     def load_value(self, instance):
         @functools.wraps(self._fget)
         async def _load_value():
-            if hasattr(instance, self.field_attr):
-                return getattr(instance, self.field_attr)
-            value = await self._fget(instance)
-            self.__set__(instance, value)
-            return value
+            async with self.lock:
+                if hasattr(instance, self.field_attr):
+                    return getattr(instance, self.field_attr)
+                value = await self._fget(instance)
+                self.__set__(instance, value)
+                return value
         return _load_value
 
     def not_loaded(self, instance):
