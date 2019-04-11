@@ -1,13 +1,15 @@
+import asyncio
 import functools
-from asyncio import iscoroutinefunction as is_coroutine
 
 from async_property.exceptions import AsyncPropertyException
 from async_property.proxy import AwaitableOnly, AwaitableProxy
 
+is_coroutine = asyncio.iscoroutinefunction
 
-def async_cached_property(method):
-    assert is_coroutine(method), 'Can only use with async def'
-    return AsyncCachedPropertyDescriptor(method)
+
+def async_cached_property(func):
+    assert is_coroutine(func), 'Can only use with async def'
+    return AsyncCachedPropertyDescriptor(func)
 
 
 class AsyncCachedPropertyDescriptor:
@@ -55,16 +57,15 @@ class AsyncCachedPropertyDescriptor:
         return f'_{self.field_name}'
 
     @property
-    def _error(self):
+    def error(self):
         return AsyncPropertyException(
             f'{self.field_name} is an async_cached_property and has not been loaded. '
-            f'Use await on the field or on the instance.'
+            f'Use await on the property value.'
         )
 
-    @property
-    def load_value(self):
+    def load_value(self, instance):
         @functools.wraps(self._fget)
-        async def _load_value(instance):
+        async def _load_value():
             if hasattr(instance, self.field_attr):
                 return getattr(instance, self.field_attr)
             value = await self._fget(instance)
@@ -74,7 +75,7 @@ class AsyncCachedPropertyDescriptor:
 
     def not_loaded(self, instance):
         name = f'{instance.__class__.__qualname__}.{self.field_name}'
-        return AwaitableOnly(lambda: self.load_value(instance), name, self._error)
+        return AwaitableOnly(self.load_value(instance), name, self.error)
 
     def already_loaded(self, instance):
         return AwaitableProxy(getattr(instance, self.field_attr))

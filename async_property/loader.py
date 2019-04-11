@@ -1,8 +1,10 @@
-from asyncio import wait, iscoroutinefunction as is_coroutine
-from .cached import AsyncCachedPropertyDescriptor
+import asyncio
+from async_property.cached import AsyncCachedPropertyDescriptor
+
+is_coroutine = asyncio.iscoroutinefunction
 
 
-class AsyncCachedPropertyObjectMeta(type):
+class AsyncCachedPropertyLoaderMeta(type):
     def __new__(mcs, name, bases, attrs) -> type:
         loaders = []
         for value in attrs.values():
@@ -12,7 +14,7 @@ class AsyncCachedPropertyObjectMeta(type):
         return super().__new__(mcs, name, bases, attrs)
 
 
-class AsyncCachedPropertyLoader(metaclass=AsyncCachedPropertyObjectMeta):
+class AsyncCachedPropertyLoader(metaclass=AsyncCachedPropertyLoaderMeta):
     _async_property_loaders = []
 
     def __await__(self):
@@ -23,7 +25,7 @@ class AsyncCachedPropertyLoader(metaclass=AsyncCachedPropertyObjectMeta):
         if hasattr(self, 'load') and is_coroutine(self.load):
             await self.load()
         if self._async_property_loaders:
-            await wait([
-                loader(self) for loader in self._async_property_loaders
+            await asyncio.wait([
+                loader(self)() for loader in self._async_property_loaders
             ])
         return self
