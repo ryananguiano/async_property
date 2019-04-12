@@ -13,10 +13,10 @@ def async_property(func, *args, **kwargs):
 
 
 class AsyncPropertyDescriptor:
-    def __init__(self, _fget, field_name=None, doc=None):
+    def __init__(self, _fget, field_name=None):
         self._fget = _fget
         self.field_name = field_name or _fget.__name__
-        self.__doc__ = doc or _fget.__doc__
+        functools.update_wrapper(self, _fget)
 
     def __set_name__(self, owner, name):
         self.field_name = name

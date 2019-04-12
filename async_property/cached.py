@@ -15,12 +15,12 @@ def async_cached_property(func, *args, **kwargs):
 class AsyncCachedPropertyDescriptor:
     lock = asyncio.Lock()
 
-    def __init__(self, _fget, _fset=None, _fdel=None, field_name=None, doc=None):
+    def __init__(self, _fget, _fset=None, _fdel=None, field_name=None):
         self._fget = _fget
         self._fset = _fset
         self._fdel = _fdel
         self.field_name = field_name or _fget.__name__
-        self.__doc__ = doc or _fget.__doc__
+        functools.update_wrapper(self, _fget)
 
     def __set_name__(self, owner, name):
         self.field_name = name
@@ -47,12 +47,12 @@ class AsyncCachedPropertyDescriptor:
     def setter(self, method):
         assert method.__name__ == self.field_name, 'Setter name must match property name'
         assert not is_coroutine(self._fset), 'Setter must be synchronous'
-        return type(self)(self._fget, method, self._fdel, self.field_name, self.__doc__)
+        return type(self)(self._fget, method, self._fdel, self.field_name)
 
     def deleter(self, method):
         assert method.__name__ == self.field_name, 'Deleter name must match property name'
         assert not is_coroutine(self._fdel), 'Deleter must be synchronous'
-        return type(self)(self._fget, self._fset, method, self.field_name, self.__doc__)
+        return type(self)(self._fget, self._fset, method, self.field_name)
 
     @property
     def field_attr(self):

@@ -9,12 +9,14 @@ pytestmark = pytest.mark.asyncio
 
 class MyModel:
     @async_property
-    async def foo(self):
+    async def foo(self) -> str:
         return 'bar'
 
 
 async def test_descriptor():
     assert isinstance(MyModel.foo, AsyncPropertyDescriptor)
+    assert MyModel.foo.__name__ == 'foo'
+    assert MyModel.foo.__annotations__['return'] == str
 
 
 async def test_property():
