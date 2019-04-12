@@ -12,7 +12,6 @@ pytest-asyncio = "*"
 pytest-runner = "*"
 sphinx = "*"
 tox = "*"
-tox-pipenv = "*"
 twine = "*"
 
 [packages]
