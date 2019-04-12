@@ -99,3 +99,27 @@ async def test_multiple_fields():
     instance = MyModelWithMultiple()
     assert await instance.first == 123
     assert await instance.second == 456
+
+
+async def test_bad_setter_name():
+    with pytest.raises(AssertionError):
+        class BadSetter:
+            @async_cached_property
+            async def foo(self):
+                return True
+
+            @foo.setter
+            def not_foo(self, value):
+                pass
+
+
+async def test_async_setter():
+    with pytest.raises(AssertionError):
+        class AsyncSetter:
+            @async_cached_property
+            async def foo(self):
+                return True
+
+            @foo.setter
+            async def foo(self, value):
+                pass

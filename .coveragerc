@@ -1,0 +1,7 @@
+[run]
+source = async_property/
+branch = true
+omit = tests/
+
+[report]
+show_missing = true

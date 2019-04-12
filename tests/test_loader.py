@@ -12,6 +12,10 @@ class MyModel(AwaitLoader):
         return 'bar'
 
 
+async def test_empty_instance():
+    assert await AwaitLoader()
+
+
 async def test_loader():
     instance = await MyModel()
     assert hasattr(instance, '_foo')

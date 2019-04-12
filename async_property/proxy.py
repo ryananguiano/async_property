@@ -11,6 +11,8 @@ class AwaitableOnly:
     def __await__(self):
         return self._coro().__await__()
 
+    __slots__ = ['_coro']
+
 
 """Below taken from: https://github.com/GrahamDumpleton/wrapt/blob/master/src/wrapt/wrappers.py
 

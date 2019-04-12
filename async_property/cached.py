@@ -42,14 +42,18 @@ class AsyncCachedPropertyDescriptor:
             self._fdel(instance)
 
     def setter(self, method):
-        assert method.__name__ == self.field_name, 'Setter name must match property name'
-        assert not is_coroutine(self._fset), 'Setter must be synchronous'
+        self._check_method(method, f'@{self.field_name}.setter')
         return type(self)(self._fget, method, self._fdel, self.field_name)
 
     def deleter(self, method):
-        assert method.__name__ == self.field_name, 'Deleter name must match property name'
-        assert not is_coroutine(self._fdel), 'Deleter must be synchronous'
+        self._check_method(method, f'@{self.field_name}.deleter')
         return type(self)(self._fget, self._fset, method, self.field_name)
+
+    def _check_method(self, method, method_type):
+        if method.__name__ != self.field_name:
+            raise AssertionError(f'{method_type} name must match property name')
+        if is_coroutine(method):
+            raise AssertionError(f'{method_type} must be synchronous')
 
     @property
     def field_attr(self):
