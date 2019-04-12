@@ -1,14 +1,25 @@
 import asyncio
 import functools
+from collections import defaultdict
 
 from async_property.proxy import AwaitableOnly, AwaitableProxy
 
 is_coroutine = asyncio.iscoroutinefunction
 
+ASYNC_PROPERTY_ATTR = '__async_property__'
+
 
 def async_cached_property(func, *args, **kwargs):
     assert is_coroutine(func), 'Can only use with async def'
     return AsyncCachedPropertyDescriptor(func, *args, **kwargs)
+
+
+class AsyncPropertyInstanceState:
+    def __init__(self):
+        self.cache = {}
+        self.lock = defaultdict(asyncio.Lock)
+
+    __slots__ = 'cache', 'lock'
 
 
 class AsyncCachedPropertyDescriptor:
@@ -25,21 +36,19 @@ class AsyncCachedPropertyDescriptor:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        if not hasattr(instance, self.field_attr):
-            return self.not_loaded(instance)
-        return self.already_loaded(instance)
+        if self.has_cache_value(instance):
+            return self.already_loaded(instance)
+        return self.not_loaded(instance)
 
     def __set__(self, instance, value):
-        if self._fset is None:
-            setattr(instance, self.field_attr, value)
-        else:
+        if self._fset is not None:
             self._fset(instance, value)
+        self.set_cache_value(instance, value)
 
     def __delete__(self, instance):
-        if self._fdel is None:
-            delattr(instance, self.field_attr)
-        else:
+        if self._fdel is not None:
             self._fdel(instance)
+        self.del_cache_value(instance)
 
     def setter(self, method):
         self._check_method(method, f'@{self.field_name}.setter')
@@ -55,30 +64,43 @@ class AsyncCachedPropertyDescriptor:
         if is_coroutine(method):
             raise AssertionError(f'{method_type} must be synchronous')
 
-    @property
-    def field_attr(self):
-        return f'_{self.field_name}'
-
-    @property
-    def lock_attr(self):
-        return f'_{self.field_name}_lock'
-
-    def get_instance_lock(self, instance):
+    def get_instance_state(self, instance):
         try:
-            lock = getattr(instance, self.lock_attr)
+            return getattr(instance, ASYNC_PROPERTY_ATTR)
         except AttributeError:
-            lock = asyncio.Lock()
-            setattr(instance, self.lock_attr, lock)
-        return lock
+            state = AsyncPropertyInstanceState()
+            setattr(instance, ASYNC_PROPERTY_ATTR, state)
+            return state
+
+    def get_lock(self, instance):
+        lock = self.get_instance_state(instance).lock
+        return lock[self.field_name]
+
+    def get_cache(self, instance):
+        return self.get_instance_state(instance).cache
+
+    def has_cache_value(self, instance):
+        cache = self.get_cache(instance)
+        return self.field_name in cache
+
+    def get_cache_value(self, instance):
+        cache = self.get_cache(instance)
+        return cache[self.field_name]
+
+    def set_cache_value(self, instance, value):
+        cache = self.get_cache(instance)
+        cache[self.field_name] = value
+
+    def del_cache_value(self, instance):
+        cache = self.get_cache(instance)
+        del cache[self.field_name]
 
     def get_loader(self, instance):
         @functools.wraps(self._fget)
         async def load_value():
-            async with self.get_instance_lock(instance):
-                try:
-                    return getattr(instance, self.field_attr)
-                except AttributeError:
-                    pass
+            async with self.get_lock(instance):
+                if self.has_cache_value(instance):
+                    return self.get_cache_value(instance)
                 value = await self._fget(instance)
                 self.__set__(instance, value)
                 return value
@@ -88,4 +110,4 @@ class AsyncCachedPropertyDescriptor:
         return AwaitableOnly(self.get_loader(instance))
 
     def already_loaded(self, instance):
-        return AwaitableProxy(getattr(instance, self.field_attr))
+        return AwaitableProxy(self.get_cache_value(instance))

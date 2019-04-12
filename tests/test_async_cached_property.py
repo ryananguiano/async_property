@@ -23,7 +23,7 @@ async def test_field():
     instance = MyModel()
     assert isinstance(instance.foo, AwaitableOnly)
     assert await instance.foo == 'bar'
-    assert hasattr(instance, '_foo')
+    assert 'foo' in instance.__async_property__.cache
 
 
 async def test_awaited_repeated():
@@ -37,16 +37,16 @@ async def test_awaited_repeated():
 async def test_default_setter():
     instance = MyModel()
     instance.foo = 'abc'
-    assert hasattr(instance, '_foo')
+    assert 'foo' in instance.__async_property__.cache
     assert instance.foo == 'abc'
 
 
 async def test_default_deleter():
     instance = MyModel()
     await instance.foo
-    assert hasattr(instance, '_foo')
+    assert 'foo' in instance.__async_property__.cache
     del instance.foo
-    assert not hasattr(instance, '_foo')
+    assert 'foo' not in instance.__async_property__.cache
 
 
 class ModelWithSetterDeleter:
@@ -56,13 +56,11 @@ class ModelWithSetterDeleter:
 
     @foo.setter
     def foo(self, value):
-        self._foo = value
-        self._bar = '123'
+        self.bar = '123'
 
     @foo.deleter
     def foo(self):
-        del self._foo
-        del self._bar
+        del self.bar
 
 
 async def test_async_property_with_setter():
@@ -70,19 +68,19 @@ async def test_async_property_with_setter():
     instance.foo = 'abc'
     assert instance.foo == 'abc'
     assert await instance.foo == 'abc'
-    assert hasattr(instance, '_foo')
-    assert hasattr(instance, '_bar')
-    assert instance._bar == '123'
+    assert 'foo' in instance.__async_property__.cache
+    assert hasattr(instance, 'bar')
+    assert instance.bar == '123'
 
 
 async def test_async_property_with_deleter():
     instance = ModelWithSetterDeleter()
     await instance.foo
-    assert hasattr(instance, '_foo')
-    assert hasattr(instance, '_bar')
+    assert 'foo' in instance.__async_property__.cache
+    assert hasattr(instance, 'bar')
     del instance.foo
-    assert not hasattr(instance, '_foo')
-    assert not hasattr(instance, '_bar')
+    assert 'foo' not in instance.__async_property__.cache
+    assert not hasattr(instance, 'bar')
 
 
 class MyModelWithMultiple:

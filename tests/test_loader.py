@@ -18,7 +18,7 @@ async def test_empty_instance():
 
 async def test_loader():
     instance = await MyModel()
-    assert hasattr(instance, '_foo')
+    assert 'foo' in instance.__async_property__.cache
     assert instance.foo == 'bar'
 
 
