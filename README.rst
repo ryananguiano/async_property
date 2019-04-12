@@ -30,14 +30,14 @@ To install async_property, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install async_property
+    $ pip install async-property
 
 
 Or if you have pipenv:
 
 .. code-block:: console
 
-    $ pipenv install async_property
+    $ pipenv install async-property
 
 
 Usage
@@ -117,7 +117,8 @@ Features
 --------
 
 * Both regular and cached property.
-* Cached properties can be accessed multiple times without repeating function.
+* Cached properties can be accessed multiple times without repeating function call.
+* Cached properties use asyncio.Lock to ensure function is only called once.
 
 
 Credits
