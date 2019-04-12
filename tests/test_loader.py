@@ -30,6 +30,15 @@ async def test_delayed_field():
     assert await coro == 'bar'
 
 
+async def test_delayed_field_with_setter():
+    instance = MyModel()
+    coro = instance.foo
+    await instance
+    assert instance.foo == 'bar'
+    instance.foo = 'abc'
+    assert await coro == 'abc'
+
+
 class LoadCalledException(Exception):
     pass
 
