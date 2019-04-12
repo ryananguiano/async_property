@@ -63,7 +63,7 @@ The property ``remote_value`` now returns an awaitable coroutine.
 Cached Properties
 ~~~~~~~~~~~~~~~~~
 
-``@async_cached_property`` will only call the function once. Subsequent awaits to the property will return a cached value.
+``@async_cached_property`` will call the function only once. Subsequent awaits to the property will return a cached value.
 
 .. code-block:: python
 
@@ -84,6 +84,10 @@ Cached Properties
     >>> instance.value
     123
 
+    >>> instance.value = 'abc'
+    >>> await instance.value
+    'abc'
+
     >>> del instance.value
     >>> await instance.value
     loading value
@@ -93,7 +97,7 @@ Cached Properties
 AwaitLoader
 ~~~~~~~~~~~
 
-If you have multiple cached properties and would like to load them concurrently, you can subclass ``AwaitLoader``. This makes your class instance awaitable and will load all ``@async_cached_property`` fields.
+If you have an object with multiple cached properties, you can subclass ``AwaitLoader``. This will make your class instances awaitable and will load all ``@async_cached_property`` fields concurrently.
 
 .. code-block:: python
 
@@ -119,6 +123,7 @@ Features
 * Both regular and cached property.
 * Cached properties can be accessed multiple times without repeating function call.
 * Cached properties use asyncio.Lock to ensure function is only called once.
+* AwaitLoader will call ``await instance.load()``, if it exists, before loading properties.
 
 
 Credits
