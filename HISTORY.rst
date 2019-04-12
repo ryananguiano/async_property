@@ -2,6 +2,11 @@
 History
 =======
 
+0.2.0 (2019-04-12)
+------------------
+
+* Use instance state to hold cache and locks
+
 0.1.4 (2019-04-12)
 ------------------
 
