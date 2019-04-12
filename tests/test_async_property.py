@@ -1,6 +1,6 @@
 import pytest
 
-from async_property import async_property, AsyncPropertyException
+from async_property import async_property
 from async_property.base import AsyncPropertyDescriptor
 from async_property.proxy import AwaitableOnly
 
@@ -25,12 +25,6 @@ async def test_property():
     assert await instance.foo == 'bar'
 
 
-async def test_no_await():
-    instance = MyModel()
-    with pytest.raises(AsyncPropertyException):
-        assert instance.foo == 'bar'
-
-
 async def test_multiple_calls():
     instance = MyModel()
     assert await instance.foo == 'bar'
@@ -47,3 +41,11 @@ async def test_deleter():
     instance = MyModel()
     with pytest.raises(ValueError):
         del instance.foo
+
+
+async def test_sync_error():
+    with pytest.raises(AssertionError):
+        class MyModel:
+            @async_property
+            def foo(self):
+                return 'bar'

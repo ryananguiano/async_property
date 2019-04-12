@@ -1,6 +1,6 @@
 import pytest
 
-from async_property import async_cached_property, AsyncPropertyException
+from async_property import async_cached_property
 from async_property.cached import AsyncCachedPropertyDescriptor
 from async_property.proxy import AwaitableOnly, AwaitableProxy
 
@@ -26,17 +26,8 @@ async def test_field():
     assert hasattr(instance, '_foo')
 
 
-async def test_not_awaited():
-    instance = MyModel()
-    with pytest.raises(AsyncPropertyException):
-        assert instance.foo
-    assert not hasattr(instance, '_foo')
-
-
 async def test_awaited_repeated():
     instance = MyModel()
-    with pytest.raises(AsyncPropertyException):
-        assert instance.foo == 'bar'
     assert await instance.foo == 'bar'
     assert isinstance(instance.foo, AwaitableProxy)
     assert instance.foo == 'bar'

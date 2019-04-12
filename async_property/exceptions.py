@@ -1,4 +1,0 @@
-
-
-class AsyncPropertyException(Exception):
-    pass
