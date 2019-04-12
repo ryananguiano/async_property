@@ -1,6 +1,6 @@
 __author__ = """Ryan Anguiano"""
 __email__ = 'ryan.anguiano@gmail.com'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 
 from .base import async_property
