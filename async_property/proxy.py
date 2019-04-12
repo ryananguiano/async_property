@@ -1,13 +1,12 @@
 
 
 class AwaitableOnly:
-    """This wraps a coroutine will throw an error on any action except await."""
-    def __init__(self, coro, name):
+    """This wraps a coroutine will call it on await."""
+    def __init__(self, coro):
         object.__setattr__(self, '_coro', coro)
-        object.__setattr__(self, '_name', name)
 
     def __repr__(self):
-        return f'<AwaitableOnly "{self._name}">'
+        return f'<AwaitableOnly "{self._coro.__qualname__}">'
 
     def __await__(self):
         return self._coro().__await__()

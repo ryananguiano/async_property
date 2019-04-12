@@ -45,7 +45,7 @@ async def test_deleter():
 
 async def test_sync_error():
     with pytest.raises(AssertionError):
-        class MyModel:
+        class BadModel:
             @async_property
             def foo(self):
                 return 'bar'

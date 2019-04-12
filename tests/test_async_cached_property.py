@@ -36,7 +36,6 @@ async def test_awaited_repeated():
 
 async def test_default_setter():
     instance = MyModel()
-    assert not hasattr(instance, '_foo')
     instance.foo = 'abc'
     assert hasattr(instance, '_foo')
     assert instance.foo == 'abc'
@@ -44,15 +43,13 @@ async def test_default_setter():
 
 async def test_default_deleter():
     instance = MyModel()
-    assert not hasattr(instance, '_foo')
     await instance.foo
     assert hasattr(instance, '_foo')
-    assert instance.foo == 'bar'
     del instance.foo
     assert not hasattr(instance, '_foo')
 
 
-class ModelWithSetter:
+class ModelWithSetterDeleter:
     @async_cached_property
     async def foo(self):
         return 'bar'
@@ -69,7 +66,7 @@ class ModelWithSetter:
 
 
 async def test_async_property_with_setter():
-    instance = ModelWithSetter()
+    instance = ModelWithSetterDeleter()
     instance.foo = 'abc'
     assert instance.foo == 'abc'
     assert await instance.foo == 'abc'
@@ -79,11 +76,10 @@ async def test_async_property_with_setter():
 
 
 async def test_async_property_with_deleter():
-    instance = ModelWithSetter()
-    assert await instance.foo == 'bar'
+    instance = ModelWithSetterDeleter()
+    await instance.foo
     assert hasattr(instance, '_foo')
     assert hasattr(instance, '_bar')
-    assert instance._bar == '123'
     del instance.foo
     assert not hasattr(instance, '_foo')
     assert not hasattr(instance, '_bar')

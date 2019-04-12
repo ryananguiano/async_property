@@ -74,10 +74,19 @@ Cached Properties
             return 123
 
     >>> instance = Foo()
+    >>> instance.value
+    <AwaitableOnly "Foo.value">
     >>> await instance.value
     loading value
     123
     >>> await instance.value
+    123
+    >>> instance.value
+    123
+
+    >>> del instance.value
+    >>> await instance.value
+    loading value
     123
 
 
@@ -97,7 +106,6 @@ If you have multiple cached properties and would like to load them concurrently,
         @async_cached_property
         async def api_call(self):
             return 'works every time'
-
 
     >>> instance = await Foo()
     >>> instance.db_lookup

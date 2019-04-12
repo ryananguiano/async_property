@@ -55,29 +55,33 @@ class AsyncCachedPropertyDescriptor:
     def field_attr(self):
         return f'_{self.field_name}'
 
+    @property
+    def lock_attr(self):
+        return f'_{self.field_name}_lock'
+
     def get_instance_lock(self, instance):
-        lock_field = f'{self.field_attr}_lock'
         try:
-            lock = getattr(instance, lock_field)
+            lock = getattr(instance, self.lock_attr)
         except AttributeError:
             lock = asyncio.Lock()
-            setattr(instance, lock_field, lock)
+            setattr(instance, self.lock_attr, lock)
         return lock
 
-    def load_value(self, instance):
+    def get_loader(self, instance):
         @functools.wraps(self._fget)
-        async def _load_value():
+        async def load_value():
             async with self.get_instance_lock(instance):
-                if hasattr(instance, self.field_attr):
+                try:
                     return getattr(instance, self.field_attr)
+                except AttributeError:
+                    pass
                 value = await self._fget(instance)
                 self.__set__(instance, value)
                 return value
-        return _load_value
+        return load_value
 
     def not_loaded(self, instance):
-        name = f'{instance.__class__.__qualname__}.{self.field_name}'
-        return AwaitableOnly(self.load_value(instance), name)
+        return AwaitableOnly(self.get_loader(instance))
 
     def already_loaded(self, instance):
         return AwaitableProxy(getattr(instance, self.field_attr))

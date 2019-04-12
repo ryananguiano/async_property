@@ -26,17 +26,20 @@ class AsyncPropertyDescriptor:
         return self.get_awaitable(instance)
 
     def __set__(self, instance, value):
-        raise ValueError('Cannot set @async_property. Use @async_cached_property instead.')
+        raise ValueError(INVALID_ACTION.format('set'))
 
     def __delete__(self, instance):
-        raise ValueError('Cannot delete @async_property. Use @async_cached_property instead.')
+        raise ValueError(INVALID_ACTION.format('delete'))
 
-    def get_value(self, instance):
+    def get_loader(self, instance):
         @functools.wraps(self._fget)
-        async def _get_value():
+        async def get_value():
             return await self._fget(instance)
-        return _get_value
+        return get_value
 
     def get_awaitable(self, instance):
-        name = f'{instance.__class__.__qualname__}.{self.field_name}'
-        return AwaitableOnly(self.get_value(instance), name)
+        return AwaitableOnly(self.get_loader(instance))
+
+
+INVALID_ACTION = 'Cannot {} @async_property. ' \
+                 'Use @async_cached_property instead.'

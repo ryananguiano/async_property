@@ -9,7 +9,7 @@ class AwaitLoaderMeta(type):
         loaders = []
         for value in attrs.values():
             if isinstance(value, AsyncCachedPropertyDescriptor):
-                loaders.append(value.load_value)
+                loaders.append(value.get_loader)
         attrs['_async_property_loaders'] = loaders
         return super().__new__(mcs, name, bases, attrs)
 
@@ -21,13 +21,16 @@ class AwaitLoader(metaclass=AwaitLoaderMeta):
         return self._load().__await__()
 
     async def _load(self):
-        """Calls overridable async load method and then async property loaders"""
+        """
+        Calls overridable async load method
+        and then calls async property loaders
+        """
         if hasattr(self, 'load') and is_coroutine(self.load):
             await self.load()
         if self._async_property_loaders:
             await asyncio.wait([
-                load_property(self)()
-                for load_property
+                get_loader(self)()
+                for get_loader
                 in self._async_property_loaders
             ])
         return self
