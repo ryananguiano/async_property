@@ -12,7 +12,14 @@ To install async_property, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install async_property
+    $ pip install async-property
+
+
+Or if you have pipenv:
+
+.. code-block:: console
+
+    $ pipenv install async-property
 
 This is the preferred method to install async_property, as it will always install the most recent stable release.
 

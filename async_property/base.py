@@ -23,7 +23,7 @@ class AsyncPropertyDescriptor:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return self.get_awaitable(instance)
+        return self.awaitable_only(instance)
 
     def __set__(self, instance, value):
         raise ValueError(INVALID_ACTION.format('set'))
@@ -37,7 +37,7 @@ class AsyncPropertyDescriptor:
             return await self._fget(instance)
         return get_value
 
-    def get_awaitable(self, instance):
+    def awaitable_only(self, instance):
         return AwaitableOnly(self.get_loader(instance))
 
 

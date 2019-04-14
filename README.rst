@@ -4,24 +4,26 @@ async_property
 
 
 .. image:: https://img.shields.io/pypi/v/async_property.svg
-        :target: https://pypi.python.org/pypi/async_property
+    :target: https://pypi.org/project/async-property/
 
 .. image:: https://img.shields.io/travis/ryananguiano/async_property.svg
-        :target: https://travis-ci.org/ryananguiano/async_property
+    :target: https://travis-ci.org/ryananguiano/async_property
 
 .. image:: https://readthedocs.org/projects/async-property/badge/?version=latest
-        :target: https://async-property.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
+    :target: https://async-property.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 .. image:: https://pyup.io/repos/github/ryananguiano/async_property/shield.svg
-     :target: https://pyup.io/repos/github/ryananguiano/async_property/
-     :alt: Updates
+    :target: https://pyup.io/repos/github/ryananguiano/async_property/
+    :alt: Updates
 
 
 Python decorator for async properties.
 
 * Free software: MIT license
-* Documentation: https://async-property.readthedocs.io.
+* Documentation: https://async-property.readthedocs.io
+* Package: https://pypi.org/project/async-property
+* Source code: https://github.com/ryananguiano/async_property
 
 Install
 -------
@@ -76,6 +78,7 @@ Cached Properties
     >>> instance = Foo()
     >>> instance.value
     <AwaitableOnly "Foo.value">
+
     >>> await instance.value
     loading value
     123
@@ -85,6 +88,8 @@ Cached Properties
     123
 
     >>> instance.value = 'abc'
+    >>> instance.value
+    'abc'
     >>> await instance.value
     'abc'
 
@@ -97,12 +102,15 @@ Cached Properties
 AwaitLoader
 ~~~~~~~~~~~
 
-If you have an object with multiple cached properties, you can subclass ``AwaitLoader``. This will make your class instances awaitable and will load all ``@async_cached_property`` fields concurrently.
+If you have an object with multiple cached properties, you can subclass ``AwaitLoader``. This will make your class instances awaitable and will load all ``@async_cached_property`` fields concurrently. ``AwaitLoader`` will call ``await instance.load()``, if it exists, before loading properties.
 
 .. code-block:: python
 
 
     class Foo(AwaitLoader):
+        async def load(self):
+            print('load called')
+
         @async_cached_property
         async def db_lookup(self):
             return 'success'
@@ -112,6 +120,7 @@ If you have an object with multiple cached properties, you can subclass ``AwaitL
             return 'works every time'
 
     >>> instance = await Foo()
+    load called
     >>> instance.db_lookup
     'success'
     >>> instance.api_call
@@ -121,9 +130,9 @@ Features
 --------
 
 * Both regular and cached property.
-* Cached properties can be accessed multiple times without repeating function call.
-* Cached properties use asyncio.Lock to ensure function is only called once.
-* AwaitLoader will call ``await instance.load()``, if it exists, before loading properties.
+* ``@async_cached_property`` can be accessed multiple times without repeating function call.
+* ``@async_cached_property`` uses asyncio.Lock to ensure function is called only once per instance.
+* Full test coverage with py.test
 
 
 Credits

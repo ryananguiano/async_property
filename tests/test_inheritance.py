@@ -35,9 +35,12 @@ async def test_loaders_exist():
 
 async def test_loader_keys():
     instance = TestLoader()
-    assert set(get_loaders(instance)) == {'foo', 'bar', 'abc'}
+    assert set(dict(get_loaders(instance))) == {'foo', 'bar', 'abc'}
 
 
 async def test_inherited_value():
     instance = await TestLoader()
     assert instance.foo == False
+
+    base = await TestLoaderA()
+    assert base.foo == True

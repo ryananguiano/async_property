@@ -6,6 +6,7 @@ from async_property.proxy import AwaitableOnly, AwaitableProxy
 
 is_coroutine = asyncio.iscoroutinefunction
 
+
 ASYNC_PROPERTY_ATTR = '__async_property__'
 
 
@@ -14,7 +15,7 @@ def async_cached_property(func, *args, **kwargs):
     return AsyncCachedPropertyDescriptor(func, *args, **kwargs)
 
 
-class AsyncPropertyInstanceState:
+class AsyncCachedPropertyInstanceState:
     def __init__(self):
         self.cache = {}
         self.lock = defaultdict(asyncio.Lock)
@@ -28,7 +29,10 @@ class AsyncCachedPropertyDescriptor:
         self._fset = _fset
         self._fdel = _fdel
         self.field_name = field_name or _fget.__name__
+
         functools.update_wrapper(self, _fget)
+        self._check_method_sync(_fset, 'setter')
+        self._check_method_sync(_fdel, 'deleter')
 
     def __set_name__(self, owner, name):
         self.field_name = name
@@ -51,25 +55,31 @@ class AsyncCachedPropertyDescriptor:
         self.del_cache_value(instance)
 
     def setter(self, method):
-        self._check_method(method, f'@{self.field_name}.setter')
+        self._check_method_name(method, 'setter')
         return type(self)(self._fget, method, self._fdel, self.field_name)
 
     def deleter(self, method):
-        self._check_method(method, f'@{self.field_name}.deleter')
+        self._check_method_name(method, 'deleter')
         return type(self)(self._fget, self._fset, method, self.field_name)
 
-    def _check_method(self, method, method_type):
+    def _check_method_name(self, method, method_type):
         if method.__name__ != self.field_name:
-            raise AssertionError(f'{method_type} name must match property name')
-        if is_coroutine(method):
-            raise AssertionError(f'{method_type} must be synchronous')
+            raise AssertionError(
+                f'@{self.field_name}.{method_type} name must match property name'
+            )
+
+    def _check_method_sync(self, method, method_type):
+        if method and is_coroutine(method):
+            raise AssertionError(
+                f'@{self.field_name}.{method_type} must be synchronous'
+            )
 
     def get_instance_state(self, instance):
         try:
             return getattr(instance, ASYNC_PROPERTY_ATTR)
         except AttributeError:
-            state = AsyncPropertyInstanceState()
-            setattr(instance, ASYNC_PROPERTY_ATTR, state)
+            state = AsyncCachedPropertyInstanceState()
+            object.__setattr__(instance, ASYNC_PROPERTY_ATTR, state)
             return state
 
     def get_lock(self, instance):
@@ -106,8 +116,8 @@ class AsyncCachedPropertyDescriptor:
                 return value
         return load_value
 
-    def not_loaded(self, instance):
-        return AwaitableOnly(self.get_loader(instance))
-
     def already_loaded(self, instance):
         return AwaitableProxy(self.get_cache_value(instance))
+
+    def not_loaded(self, instance):
+        return AwaitableOnly(self.get_loader(instance))

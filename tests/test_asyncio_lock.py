@@ -49,7 +49,8 @@ async def test_lock_multiple_instances():
 async def test_concurrent():
     start = time.time()
     instance = MyModel()
-    await asyncio.gather(instance.first, instance.second, instance.third)
+    await asyncio.gather(instance.first, instance.second, instance.third,
+                         instance.first, instance.second, instance.third)
     duration = time.time() - start
     assert instance.num_loaded == 3
     assert 0.3 <= duration < 0.4

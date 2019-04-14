@@ -1,7 +1,5 @@
 import pytest
-
 from async_property import async_cached_property, AwaitLoader
-
 
 pytestmark = pytest.mark.asyncio
 
@@ -39,15 +37,21 @@ async def test_delayed_field_with_setter():
     assert await coro == 'abc'
 
 
-class LoadCalledException(Exception):
-    pass
+async def test_empty_instance_loaders():
+    assert AwaitLoader._async_property_loaders == ()
+
+
+async def test_instance_loaders():
+    assert MyModel._async_property_loaders == (
+        ('foo', MyModel.foo.get_loader),
+    )
 
 
 class MyModelWithLoad(AwaitLoader):
     async def load(self):
-        raise LoadCalledException
+        self.loaded = True
 
 
 async def test_call_load():
-    with pytest.raises(LoadCalledException):
-        await MyModelWithLoad()
+    instance = await MyModelWithLoad()
+    assert instance.loaded == True

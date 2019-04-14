@@ -8,7 +8,7 @@ AWAIT_LOADER_ATTR = '_async_property_loaders'
 
 
 def get_loaders(instance):
-    return getattr(instance, AWAIT_LOADER_ATTR, {})
+    return getattr(instance, AWAIT_LOADER_ATTR, ())
 
 
 class AwaitLoaderMeta(type):
@@ -19,11 +19,11 @@ class AwaitLoaderMeta(type):
                 loaders[key] = value.get_loader
 
         for base in reversed(bases):
-            for key, loader in get_loaders(base).items():
-                if key not in loaders:
-                    loaders[key] = loader
+            for field, get_loader in get_loaders(base):
+                if field not in loaders:
+                    loaders[field] = get_loader
 
-        attrs[AWAIT_LOADER_ATTR] = loaders
+        attrs[AWAIT_LOADER_ATTR] = tuple(loaders.items())
         return super().__new__(mcs, name, bases, attrs)
 
 
@@ -42,7 +42,7 @@ class AwaitLoader(metaclass=AwaitLoaderMeta):
         if loaders:
             await asyncio.wait([
                 get_loader(self)()
-                for get_loader
-                in loaders.values()
+                for field, get_loader
+                in loaders
             ])
         return self
