@@ -20,6 +20,7 @@ async_property
 
 Python decorator for async properties.
 
+* Python: 3.6+
 * Free software: MIT license
 * Documentation: https://async-property.readthedocs.io
 * Package: https://pypi.org/project/async-property
@@ -117,10 +118,12 @@ If you have an object with multiple cached properties, you can subclass ``AwaitL
 
         @async_cached_property
         async def api_call(self):
+            print('calling api')
             return 'works every time'
 
     >>> instance = await Foo()
     load called
+    calling api
     >>> instance.db_lookup
     'success'
     >>> instance.api_call
@@ -130,8 +133,8 @@ Features
 --------
 
 * Both regular and cached property.
-* ``@async_cached_property`` can be accessed multiple times without repeating function call.
-* ``@async_cached_property`` uses asyncio.Lock to ensure function is called only once per instance.
+* Cached properties can be accessed multiple times without repeating function call.
+* Uses asyncio.Lock to ensure cached functions are called only once.
 * Full test coverage with py.test
 
 
