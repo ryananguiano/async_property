@@ -1,7 +1,7 @@
-
-from typing import TypeVar
+from typing import Awaitable, Generic, TypeVar
 
 T = TypeVar('T')
+
 
 class AwaitableOnly(Generic[T]):
     """This wraps a coroutine will call it on await."""
@@ -103,11 +103,11 @@ class _ObjectProxyMetaType(type):
         return type.__new__(cls, name, bases, dictionary)
 
 
-class ObjectProxy(metaclass=_ObjectProxyMetaType):
+class ObjectProxy(Generic[T], metaclass=_ObjectProxyMetaType):
 
     __slots__ = '__wrapped__'
 
-    def __init__(self, wrapped):
+    def __init__(self, wrapped: Awaitable[T]) -> None:
         object.__setattr__(self, '__wrapped__', wrapped)
 
         # Python 3.2+ has the __qualname__ attribute, but it does not
@@ -436,7 +436,7 @@ class ObjectProxy(metaclass=_ObjectProxyMetaType):
 
     def __reduce__(self):
         raise NotImplementedError(
-                'object proxy must define __reduce_ex__()')
+                'object proxy must define __reduce__()')
 
     def __reduce_ex__(self, protocol):
         raise NotImplementedError(
@@ -447,19 +447,19 @@ class ObjectProxy(metaclass=_ObjectProxyMetaType):
 
 
 class AwaitableProxy(ObjectProxy):
-    def __await__(self):
+    def __await__(self) -> T:
         async def get_wrapped():
             return self.__wrapped__
         return get_wrapped().__await__()
-    
+
     async def __aenter__(self):
         return await self.__wrapped__.__aenter__()
-    
+
     async def __aexit__(self, *args, **kwargs):
         return await self.__wrapped__.__aexit__(*args, **kwargs)
-    
+
     async def __aiter__(self):
         return await self.__wrapped__.__aiter__()
-    
+
     async def __anext__(self):
         return await self.__wrapped__.__anext__()
