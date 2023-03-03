@@ -1,14 +1,17 @@
 
+from typing import TypeVar
 
-class AwaitableOnly:
+T = TypeVar('T')
+
+class AwaitableOnly(Generic[T]):
     """This wraps a coroutine will call it on await."""
-    def __init__(self, coro):
+    def __init__(self, coro: Awaitable[T]) -> None:
         object.__setattr__(self, '_coro', coro)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<AwaitableOnly "{self._coro.__qualname__}">'
 
-    def __await__(self):
+    def __await__(self) -> T:
         return self._coro().__await__()
 
     __slots__ = ['_coro']
