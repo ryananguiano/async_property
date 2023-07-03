@@ -20,7 +20,7 @@ async_property
 
 Python decorator for async properties.
 
-* Python: 3.6+
+* Python: 3.7+
 * Free software: MIT license
 * Documentation: https://async-property.readthedocs.io
 * Package: https://pypi.org/project/async-property
