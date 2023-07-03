@@ -6,8 +6,8 @@ async_property
 .. image:: https://img.shields.io/pypi/v/async_property.svg
     :target: https://pypi.org/project/async-property/
 
-.. image:: https://img.shields.io/travis/ryananguiano/async_property.svg
-    :target: https://travis-ci.org/ryananguiano/async_property
+.. image:: https://app.travis-ci.com/ryananguiano/async_property.svg?branch=master
+    :target: https://app.travis-ci.com/github/ryananguiano/async_property
 
 .. image:: https://readthedocs.org/projects/async-property/badge/?version=latest
     :target: https://async-property.readthedocs.io/en/latest/?badge=latest

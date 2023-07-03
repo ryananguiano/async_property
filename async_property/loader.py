@@ -41,7 +41,7 @@ class AwaitLoader(metaclass=AwaitLoaderMeta):
         loaders = get_loaders(self)
         if loaders:
             await asyncio.wait([
-                get_loader(self)()
+                asyncio.create_task(get_loader(self)())
                 for field, get_loader
                 in loaders
             ])
