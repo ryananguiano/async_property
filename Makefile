@@ -33,6 +33,7 @@ clean: clean-build clean-pyc clean-test ## remove all build, test, coverage and 
 
 clean-build: ## remove build artifacts
 	rm -fr build/
+	rm -fr conda-out/
 	rm -fr dist/
 	rm -fr .eggs/
 	find . -name '*.egg-info' -exec rm -fr {} +
@@ -49,6 +50,9 @@ clean-test: ## remove test and coverage artifacts
 	rm -f .coverage
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
+
+conda: ## build conda package for current version
+	conda build --output-folder ./conda-out/ ./conda/
 
 lint: ## check style with flake8
 	flake8 async_property tests
