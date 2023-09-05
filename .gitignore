@@ -104,3 +104,6 @@ ENV/
 
 # IDEA
 .idea/
+
+# Anaconda build
+conda-out/

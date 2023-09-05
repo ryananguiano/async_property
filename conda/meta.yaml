@@ -1,0 +1,16 @@
+{% set data = load_setup_py_data() %}
+
+package:
+  name: "async-property"
+  version: "{{ data.get('version') }}"
+about:
+  summary: "Python decorator for async properties."
+source:
+  path: ..
+requirements:
+  build:
+    - python
+    - pytest-runner
+build:
+  noarch: python
+  script: python setup.py install
