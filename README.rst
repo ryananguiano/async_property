@@ -6,6 +6,9 @@ async_property
 .. image:: https://img.shields.io/pypi/v/async_property.svg
     :target: https://pypi.org/project/async-property/
 
+.. image:: https://anaconda.org/ryananguiano/async-property/badges/version.svg
+    :target: https://anaconda.org/ryananguiano/async-property
+
 .. image:: https://app.travis-ci.com/ryananguiano/async_property.svg?branch=master
     :target: https://app.travis-ci.com/github/ryananguiano/async_property
 
@@ -41,6 +44,13 @@ Or if you have pipenv:
 .. code-block:: console
 
     $ pipenv install async-property
+
+
+Or alternatively with conda:
+
+.. code-block:: console
+
+    $ conda install -c ryananguiano async-property
 
 
 Usage
