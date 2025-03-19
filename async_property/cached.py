@@ -86,6 +86,9 @@ class AsyncCachedPropertyDescriptor:
         lock = self.get_instance_state(instance).lock
         return lock[self.field_name]
 
+    def pop_lock(self, instance):
+        self.get_instance_state(instance).lock.pop(self.field_name)
+
     def get_cache(self, instance):
         return self.get_instance_state(instance).cache
 
@@ -113,6 +116,7 @@ class AsyncCachedPropertyDescriptor:
                     return self.get_cache_value(instance)
                 value = await self._fget(instance)
                 self.__set__(instance, value)
+                self.pop_lock(instance)
                 return value
         return load_value
 
