@@ -1,24 +1,22 @@
-import asyncio
 import functools
+from asyncio import Lock, iscoroutinefunction, shield
 from collections import defaultdict
 
 from async_property.proxy import AwaitableOnly, AwaitableProxy
-
-is_coroutine = asyncio.iscoroutinefunction
 
 
 ASYNC_PROPERTY_ATTR = '__async_property__'
 
 
 def async_cached_property(func, *args, **kwargs):
-    assert is_coroutine(func), 'Can only use with async def'
+    assert iscoroutinefunction(func), 'Can only use with async def'
     return AsyncCachedPropertyDescriptor(func, *args, **kwargs)
 
 
 class AsyncCachedPropertyInstanceState:
     def __init__(self):
         self.cache = {}
-        self.lock = defaultdict(asyncio.Lock)
+        self.lock = defaultdict(Lock)
 
     __slots__ = 'cache', 'lock'
 
@@ -69,7 +67,7 @@ class AsyncCachedPropertyDescriptor:
             )
 
     def _check_method_sync(self, method, method_type):
-        if method and is_coroutine(method):
+        if method and iscoroutinefunction(method):
             raise AssertionError(
                 f'@{self.field_name}.{method_type} must be synchronous'
             )
@@ -114,7 +112,7 @@ class AsyncCachedPropertyDescriptor:
                 value = await self._fget(instance)
                 self.__set__(instance, value)
                 return value
-        return load_value
+        return lambda: shield(load_value())
 
     def already_loaded(self, instance):
         return AwaitableProxy(self.get_cache_value(instance))
