@@ -1,4 +1,4 @@
-from typing import Awaitable, Generic, TypeVar
+from typing import Any, Awaitable, Generator, Generic, TypeVar
 
 T = TypeVar('T')
 
@@ -11,7 +11,7 @@ class AwaitableOnly(Generic[T]):
     def __repr__(self) -> str:
         return f'<AwaitableOnly "{self._coro.__qualname__}">'
 
-    def __await__(self) -> T:
+    def __await__(self) -> Generator[Any, None, T]:
         return self._coro().__await__()
 
     __slots__ = ['_coro']
@@ -447,7 +447,7 @@ class ObjectProxy(Generic[T], metaclass=_ObjectProxyMetaType):
 
 
 class AwaitableProxy(ObjectProxy):
-    def __await__(self) -> T:
+    def __await__(self) -> Generator[Any, None, T]:
         async def get_wrapped():
             return self.__wrapped__
         return get_wrapped().__await__()
